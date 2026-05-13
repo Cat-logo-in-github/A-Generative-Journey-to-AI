@@ -1,0 +1,26 @@
+CNN INTERPRETABILITY REPORT
+===============================
+
+True Label: cat
+Predicted Label: cat
+
+WHAT HAPPENS INSIDE CNN:
+
+1. Early convolution layers detect:
+   - edges
+   - textures
+   - orientations
+
+2. Middle layers combine patterns into:
+   - shapes
+   - contours
+   - object parts
+
+3. Final convolution layers detect:
+   - class-specific structures
+   - semantic object regions
+
+4. Grad-CAM backtracks importance from:
+   prediction → gradients → feature maps
+5. Important kernels are the filters that
+   generated influential activations.
