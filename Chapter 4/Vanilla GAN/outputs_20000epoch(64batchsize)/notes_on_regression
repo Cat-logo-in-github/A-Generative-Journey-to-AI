@@ -1,0 +1,315 @@
+# Generative Adversarial Networks (GANs) — Training Observations and Practical Notes
+
+## 1. Introduction
+
+A Generative Adversarial Network (GAN) is a deep learning architecture consisting of two competing neural networks:
+
+1. **Generator**
+
+   * Produces synthetic images from random noise.
+   * Attempts to imitate the training dataset.
+
+2. **Discriminator**
+
+   * Attempts to distinguish between:
+
+     * real images from the dataset
+     * fake images produced by the generator
+
+The training process is adversarial:
+
+* the generator attempts to fool the discriminator
+* the discriminator attempts to correctly classify real vs fake images
+
+Over time, the generator ideally learns the structure of the dataset.
+
+---
+
+# 2. GAN Architecture Used
+
+The implemented GAN used:
+
+## Generator
+
+* Input: random noise vector of size 100
+* Dense layer to expand latent representation
+* Transposed convolution layers (`Conv2DTranspose`)
+* Batch normalization
+* LeakyReLU activations
+* Output: generated grayscale image of size 28×28
+
+## Discriminator
+
+* Input: 28×28 grayscale image
+* Convolutional layers
+* LeakyReLU activations
+* Flatten layer
+* Dense output layer with sigmoid activation
+
+The discriminator outputs a probability:
+
+* close to 1 → image considered real
+* close to 0 → image considered fake
+
+---
+
+# 3. Dataset Preparation
+
+The dataset consisted of car images:
+
+* converted to grayscale
+* resized to 28×28
+* normalized to values between 0 and 1
+
+Students should note:
+
+> Reducing images to 28×28 significantly removes visual detail.
+
+This becomes important later when discussing training instability and image quality.
+
+---
+
+# 4. Initial Training Results
+
+During early experiments:
+
+* batch size = 32
+* epochs ≈ 200
+
+the generated outputs showed visible improvement.
+
+Students should inspect:
+
+* `generated_epoch_50.png`
+* `generated_epoch_100.png`
+* `generated_epoch_150.png`
+
+Observations:
+
+* early epochs produced random noise
+* later epochs began showing blurry car-like structures
+* generator was learning broad spatial patterns
+
+This demonstrates that:
+
+* gradients were flowing correctly
+* the GAN architecture was functioning
+* adversarial learning had begun successfully
+
+---
+
+# 5. Long Training Run (20,000 Epochs)
+
+A later experiment used:
+
+* batch size = 64
+* epochs = 20,000
+
+The generated outputs eventually became almost identical across epochs.
+
+Students should compare:
+
+* `generated_epoch_1000.png`
+* `generated_epoch_5000.png`
+* `generated_epoch_10000.png`
+* `generated_epoch_19000.png`
+
+Observation:
+
+* outputs stopped evolving
+* many generated samples appeared nearly identical
+* diversity in generated images collapsed
+
+---
+
+# 6. Mode Collapse
+
+The observed behavior is an example of:
+
+Mode Collapse
+
+## Definition
+
+Mode collapse occurs when:
+
+* the generator discovers a limited set of outputs
+* those outputs are sufficient to partially fool the discriminator
+* the generator repeatedly produces similar images
+
+Instead of learning:
+
+* the entire data distribution
+
+the generator learns:
+
+* only a few “safe” outputs
+
+---
+
+# 7. Why the GAN Became Unstable
+
+Several factors contributed to instability.
+
+---
+
+## 7.1 Small Image Resolution
+
+The dataset was resized to:
+
+* 28×28 grayscale
+
+This is appropriate for simple datasets like handwritten digits, but less suitable for cars because:
+
+* cars contain complex shapes
+* orientation varies significantly
+* background information is important
+
+At low resolutions:
+
+* many details disappear
+* generator receives weaker structural information
+
+---
+
+## 7.2 Larger Batch Size
+
+The successful run used:
+
+* batch size = 32
+
+The unstable run used:
+
+* batch size = 64
+
+In GAN training:
+
+* larger batches can sometimes stabilize the discriminator too much
+* this reduces useful gradient diversity for the generator
+
+As a result:
+
+* the generator may stop exploring new outputs
+
+---
+
+## 7.3 Excessively Long Training
+
+Unlike classification models:
+
+* GANs do not always improve monotonically with more epochs
+
+Typical GAN behavior:
+
+1. early improvement
+2. temporary high-quality generation
+3. oscillation
+4. instability or collapse
+
+Therefore:
+
+* “more epochs” does not necessarily produce better images
+
+---
+
+# 8. Important Observation About GAN Training
+
+Students should understand:
+
+> GANs are dynamic systems rather than standard optimization problems.
+
+The generator and discriminator continuously adapt to each other.
+
+This creates:
+
+* instability
+* oscillation
+* non-convergent behavior
+
+Consequently:
+
+* selecting the “best checkpoint” is often more important than simply training longer.
+
+---
+
+# 9. Why Intermediate Checkpoints Matter
+
+Images were saved periodically during training.
+
+This allows:
+
+* visualization of learning progression
+* analysis of instability
+* comparison between early and late training phases
+
+Students should examine:
+
+* how image diversity changes over time
+* when outputs begin improving
+* when outputs begin collapsing
+
+Checkpoint analysis is a standard practical technique in GAN research.
+
+---
+
+# 10. Fixed Noise Vectors
+
+A useful GAN visualization technique is the use of:
+
+* fixed latent noise vectors
+
+Instead of generating new random noise each epoch:
+
+* the same latent vectors are reused
+
+This allows students to observe:
+
+* how identical inputs evolve during training
+
+Without fixed noise:
+
+* progression becomes difficult to interpret visually.
+
+---
+
+# 11. Practical Lessons Learned
+
+## Successful Aspects
+
+* GAN architecture functioned correctly
+* generator learned early image structure
+* checkpoint visualization provided useful insight
+
+## Problems Encountered
+
+* mode collapse
+* long-term instability
+* low-resolution dataset limitations
+* excessive training duration
+
+---
+
+# 12. Recommended Improvements
+
+Future experiments may improve results by:
+
+* using larger image sizes (64×64)
+* using RGB images
+* reducing batch size
+* stopping training earlier
+* using improved GAN variants such as:
+
+  * DCGAN
+  * WGAN
+  * StyleGAN
+
+---
+
+# 13. Final Conclusion
+
+This experiment demonstrates an important reality of GAN training:
+
+> Early improvement does not guarantee stable long-term learning.
+
+The generated outputs initially improved, indicating successful adversarial learning. However, prolonged training and altered hyperparameters eventually produced mode collapse.
+
+This behavior is common in GAN systems and forms an essential part of understanding adversarial deep learning.
